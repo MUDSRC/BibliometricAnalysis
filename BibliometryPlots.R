@@ -22,17 +22,16 @@ library(worrms)
 library(readxl)
 library(dplyr)
 
-# Setting working directory
+## Setting working directory
 setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science")
 
-# Import the main tables
+## Import the main tables
 yearTable <- read_excel("Tables.xlsx", sheet = "ArticlesPerYear")
 sourcesTable <- read_excel("Tables.xlsx", sheet = "Sources")
 authorsTable <- read_excel("Tables.xlsx", sheet = "Authorship")
-trendsTable <- read_excel("Tables.xlsx", sheet = "Trends")
 speciesList <- read.csv("SpeciesListWithYear.csv")
 
-# Article per Year plot
+## Article per Year plot
 paperPlot <- ggplot(data = yearTable, mapping = aes(x = Year, y = Articles)) +
   geom_line() +
   geom_point() +
@@ -46,8 +45,8 @@ paperPlot <- ggplot(data = yearTable, mapping = aes(x = Year, y = Articles)) +
     plot.title = element_text(hjust = 0.5, size = 14) 
   )
 
-# Most frequent sources
-## To do: change journal names with abbreviations
+## Most frequent sources
+# To do: change journal names with abbreviations
 otherSources <- subset(sourcesTable, Articles < 5)
 otherSourcesSum <- sum(otherSources$Articles)
 
@@ -65,7 +64,7 @@ journalPlot <- ggplot(data = majorSources, aes(x = reorder(Sources, Articles), y
     plot.title = element_text(hjust = 0.5, size = 14) 
   )
 
-# Most prolific authors with a rank-frequency plot
+## Most prolific authors with a rank-frequency plot
 majorAuthors <- subset(authorsTable, Articles >= 8)
 
 majorAuthors <- majorAuthors[order(-majorAuthors$Articles), ]  
@@ -78,25 +77,6 @@ authorsPlot <- ggplot(majorAuthors, aes(x = Rank, y = Articles)) +
        x = "Rank of Author",
        y = "Number of Publications") +
   theme_minimal()
-
-# Trending topics
-trendsTable <- subset(trendsTable, Frequency >= 10)
-trendsTable$TrendingTerm <- reorder(trendsTable$TrendingTerm, trendsTable$Median)
-trendsPlot <- ggplot(data = trendsTable, aes(x = Median, y = TrendingTerm)) +
-  geom_point(aes(size = Frequency), alpha = 0.7, color = "blue") +
-  geom_errorbarh(aes(xmin = FirstQuartile, xmax = ThirdQuartile), 
-                 height = 0.2, color = "black", linewidth = 0.6, alpha = 0.8) + 
-  scale_size(range = c(3, 10), name = "Frequency") +  
-  scale_x_continuous(breaks = seq(1980, 2020, by = 5)) +
-  labs(title = "Trending Topics", 
-       x = "Year", 
-       y = "Trending Term") +
-  theme_minimal() +
-  theme(
-    axis.text.y = element_text(size = 10),
-    plot.title = element_text(hjust = 0.5, size = 14),  
-    plot.background = element_rect(fill = "white")
-  )
 
 # Sponges described by year
 # Old script to check extract authorship and year from the previous table
@@ -118,7 +98,7 @@ species_count$Year <- as.numeric(as.character(species_count$Year))
 colnames(species_count) <- c("Year", "SpeciesCount")
 species_count$CumulativeCount <- cumsum(species_count$SpeciesCount)
 
-# Number of species described
+## Number of species described
 descriptionPlot <- ggplot(species_count, aes(x = Year, y = SpeciesCount)) +
   geom_bar(stat = "identity", fill = "steelblue") +
   theme_minimal() +
@@ -129,7 +109,7 @@ descriptionPlot <- ggplot(species_count, aes(x = Year, y = SpeciesCount)) +
   theme(plot.title = element_text(hjust = 0.5),
     axis.text.x = element_text(angle = 45, hjust = 1), plot.background = element_rect(fill = "white"))
 
-# Create the cumulative plot
+## Create the cumulative plot
 cumulativePlot <- ggplot(species_count, aes(x = Year, y = CumulativeCount)) +
   geom_line(color = "red", size = 1) +
   theme_minimal() +
@@ -146,30 +126,13 @@ cumulativePlot <- ggplot(species_count, aes(x = Year, y = CumulativeCount)) +
     axis.text.x = element_text(angle = 45, hjust = 1),plot.background = element_rect(fill = "white")
   )
 
-# Most prolific taxonomists
-taxonomistCount <- speciesList %>%
-  count(First.Author) %>%
-  rename(Authors = First.Author) %>%
-  arrange(desc(n))
 
-taxonomistCount <- subset(taxonomistCount, n > 3)
-
-ggplot(taxonomistCount, mapping = aes(x = Authors, y = n))+
-  geom_bar(stat = "identity", fill = "red", color = "black") +
-  labs(title = "Number of species described by each author",
-       x = "Authors",
-       y = "Number of species") +
-  theme_minimal()
-
-
-
-
-# Saving plots
+## Saving plots
 setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science/Plots")
 
-ggsave("Publication over the Years.png", paperPlot, width = 20, height = 16, units = "cm")
-ggsave("Major Journals.png", journalPlot, width = 20, height = 16, units = "cm")  
-ggsave("Major Authors.png", authorsPlot, width = 20, height = 16, units = "cm") 
-ggsave("Trending Words over Time.png", trendsPlot, width = 20, height = 26, units = "cm")    
-ggsave("Taxonomic effort.png", descriptionPlot, width = 20, height = 16, units = "cm")   
-ggsave("Cumulative number of species.png", cumulativePlot, width = 20, height = 16, units = "cm")   
+ggsave("Publication over the Years.pdf", paperPlot, width = 20, height = 16, units = "cm", dpi = 300)
+ggsave("Major Journals.pdf", journalPlot, width = 20, height = 16, units = "cm" , dpi = 300)  
+ggsave("Major Authors.pdf", authorsPlot, width = 20, height = 16, units = "cm", dpi = 300)
+ggsave("Taxonomic effort.pdf", descriptionPlot, width = 20, height = 16, units = "cm", dpi = 300)   
+ggsave("Cumulative number of species.pdf", cumulativePlot, width = 20, height = 16, units = "cm", dpi = 300)  
+
