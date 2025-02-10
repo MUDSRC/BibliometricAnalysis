@@ -128,7 +128,7 @@ cumulativePlot <- ggplot(species_count, aes(x = Year, y = CumulativeCount)) +
 
 
 ## Saving plots
-setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science/Plots")
+setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science/Plots and experiments")
 
 ggsave("Publication over the Years.pdf", paperPlot, width = 20, height = 16, units = "cm", dpi = 300)
 ggsave("Major Journals.pdf", journalPlot, width = 20, height = 16, units = "cm" , dpi = 300)  
