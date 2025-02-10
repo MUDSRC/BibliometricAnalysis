@@ -37,6 +37,32 @@ keywordTrends <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapte
 
 ## Viridis-gradient step color for legend
 legend_breaks <- c(5, 15, 30, 45, 60, 75) 
+legend_sizes <- scales::rescale(legend_breaks, to = c(2, 10)) 
+legend_colors <- viridis(length(legend_breaks)) 
+y_positions <- seq(10, 100, length.out = length(legend_breaks))
+
+## Teardrop legend (unchanged)
+teardrop_data <- data.frame(
+  x = rep(1, 100),
+  y = seq(1, 100, length.out = 100),  
+  size = seq(2, 10, length.out = 100),  
+  color = viridis(100)  
+)
+
+labels_data <- data.frame(
+  y = y_positions,
+  label = as.character(legend_breaks),
+  color = viridis(length(legend_breaks))
+)
+
+teardrop_legend <- ggplot(teardrop_data, aes(x, y, size = size, color = color)) +
+  geom_point(shape = 16, alpha = 0.8) +
+  scale_size_identity() + 
+  scale_color_identity() +
+  geom_text(data = labels_data, aes(x = 1, y = y, label = label, color = "black"), size = 4, hjust = 0) +
+  theme_void() +
+  theme(legend.position = "none")
+
 
 ## Read the data and generate the plots
 for (topicSheet in topicSheets) {
@@ -68,18 +94,21 @@ for (topicSheet in topicSheets) {
   p <- ggplot(filtered_data, aes(x = Year, y = Keyword, size = Frequency, color = Frequency)) +
     geom_point(alpha = 0.7) +  ## Bubbles
     geom_point(data = median_data, aes(x = median_year, y = Keyword), 
-               shape = 4, color = "red", size = 4, stroke = 1.5) + 
+               shape = 24, color = "red", fill = "#E63946",, size = 4, stroke = 1.5) + 
     scale_x_continuous(limits = c(1960, 2025), breaks = seq(1960, 2025, by = 10)) +
-    scale_size(range = c(2, 10), limits = c(1, 75), breaks = legend_breaks) +  
+    scale_size(range = c(2, 10), limits = c(1, 75), breaks = legend_breaks) +
+    scale_y_discrete(expand = expansion(mult = 0.05)) +
     scale_color_viridis_c(limits = c(1, 75), breaks = legend_breaks, option = "viridis") +
     theme_minimal() +
     theme(
       panel.background = element_rect(fill = "white"),
       legend.position = "right",
-      legend.title = element_text(face = "bold")
-    ) +
+      legend.title = element_text(face = "bold"),
+      ) +
     labs(title = topicSheet, x = "Year", y = "Keyword", size = "Frequency", color = "Frequency") +
     guides(size = "none", color = "none")
+  
+  #p <- p + teardrop_legend + plot_layout(ncol = 2, widths = 1)
   
   plot_list[[topicSheet]] <- p
 }
@@ -87,7 +116,8 @@ for (topicSheet in topicSheets) {
 ## Combine all plots into a 2x3 grid
 combined_plot <- (plot_list[[1]] | plot_list[[2]] | plot_list[[3]]) /
   (plot_list[[4]] | plot_list[[5]] | plot_list[[6]])
+ 
 
 ## Save the final combined plot
 setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science/Plots/Trends")
-ggsave("combined_bubbleplot_medianX.pdf", plot = combined_plot, width = 18, height = 12, dpi = 300)
+ggsave("combined_bubbleplot_medianX.pdf", plot = combined_plot, width = 20, height = 16, dpi = 300)
