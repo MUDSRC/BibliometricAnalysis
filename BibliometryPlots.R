@@ -5,7 +5,7 @@
 # ~ Organization:    Minderoo-UWA Deep-Sea Research Centre
 # 
 # ~ Date:           2024-11-27
-# ~ Version:        1.0
+# ~ Version:        1.2
 #
 # ~ Script Name:    BibliometryPlots
 #

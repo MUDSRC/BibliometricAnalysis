@@ -5,7 +5,7 @@
 # ~ Organization:    Minderoo-UWA Deep-Sea Research Centre
 # 
 # ~ Date:           2025-02-03
-# ~ Version:        0.1
+# ~ Version:        1.1
 #
 # ~ Script Name:    BibliometryCleaningKW
 #
@@ -18,6 +18,7 @@
 # ----------------------------------------------------
 
 ## Libraries
+library(bibliometrix)
 library(dplyr)
 library(stringr)
 library(readr)
