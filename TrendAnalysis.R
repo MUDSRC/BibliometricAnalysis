@@ -94,18 +94,18 @@ for (topicSheet in topicSheets) {
   p <- ggplot(filtered_data, aes(x = Year, y = Keyword, size = Frequency, color = Frequency)) +
     geom_point(alpha = 0.7) +  ## Bubbles
     geom_point(data = median_data, aes(x = median_year, y = Keyword), 
-               shape = 24, color = "red", fill = "#E63946",, size = 4, stroke = 1.5) + 
-    scale_x_continuous(limits = c(1960, 2025), breaks = seq(1960, 2025, by = 10)) +
+               shape = 4, color = "red3", size = 4, stroke = 1.5) + 
+    scale_x_continuous(limits = c(1969, 2025), breaks = seq(1970, 2025, by = 10)) +
     scale_size(range = c(2, 10), limits = c(1, 75), breaks = legend_breaks) +
-    scale_y_discrete(expand = expansion(mult = 0.05)) +
+    scale_y_discrete(expand = expansion(mult = 0.035)) +
     scale_color_viridis_c(limits = c(1, 75), breaks = legend_breaks, option = "viridis") +
     theme_minimal() +
     theme(
       panel.background = element_rect(fill = "white"),
       legend.position = "right",
-      legend.title = element_text(face = "bold"),
+      legend.title = element_text(face = "bold")
       ) +
-    labs(title = topicSheet, x = "Year", y = "Keyword", size = "Frequency", color = "Frequency") +
+    labs(title = topicSheet, x = "Year", size = "Frequency", color = "Frequency") +
     guides(size = "none", color = "none")
   
   #p <- p + teardrop_legend + plot_layout(ncol = 2, widths = 1)
