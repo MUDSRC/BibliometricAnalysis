@@ -45,24 +45,20 @@ paperPlot <- ggplot(data = yearTable, mapping = aes(x = Year, y = Articles)) +
     plot.title = element_text(hjust = 0.5, size = 14) 
   )
 
-## Most frequent sources
-# To do: change journal names with abbreviations
+## Most frequent sources with a rank-frequency plot
 otherSources <- subset(sourcesTable, Articles < 5)
 otherSourcesSum <- sum(otherSources$Articles)
 
-majorSources <- subset(sourcesTable, Articles >= 5)
+majorSources <- majorSources[order(-majorSources$Articles), ]  
+majorSources$Rank <- 1:nrow(majorSources) 
 
-journalPlot <- ggplot(data = majorSources, aes(x = reorder(Sources, Articles), y = Articles)) +
-  geom_bar(stat = "identity") +
-  ggtitle(label = "Preferred Journals") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  labs(title = "Most Relevant Journals ", 
-       x = "Journals", 
+journalPlot <- ggplot(majorSources, aes(x = Rank, y = Articles)) +
+  geom_point(color = "steelblue") +
+  geom_line() +
+  labs(title = "Rank-Frequency Distribution of Journals Publications",
+       x = "Rank of Journal",
        y = "Number of Publications") +
-  theme(
-    axis.text.y = element_text(size = 10),
-    plot.title = element_text(hjust = 0.5, size = 14) 
-  )
+  theme_minimal()
 
 ## Most prolific authors with a rank-frequency plot
 majorAuthors <- subset(authorsTable, Articles >= 8)
