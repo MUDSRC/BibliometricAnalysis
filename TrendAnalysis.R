@@ -23,6 +23,7 @@ library(dplyr)
 library(patchwork)
 library(viridisLite)
 
+### Temporal trends
 
 ## List of sheet names for topics
 topicSheets <- c("Glass Sponge Science", "Paleontology", "Invertebrate Zoology", 
@@ -41,7 +42,7 @@ legend_sizes <- scales::rescale(legend_breaks, to = c(2, 10))
 legend_colors <- viridis(length(legend_breaks)) 
 y_positions <- seq(10, 100, length.out = length(legend_breaks))
 
-## Teardrop legend (unchanged)
+## Teardrop legend 
 teardrop_data <- data.frame(
   x = rep(1, 100),
   y = seq(1, 100, length.out = 100),  
@@ -121,3 +122,38 @@ combined_plot <- (plot_list[[1]] | plot_list[[2]] | plot_list[[3]]) /
 ## Save the final combined plot
 setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science/Plots/Trends")
 ggsave("combined_bubbleplot_medianX.pdf", plot = combined_plot, width = 20, height = 16, dpi = 300)
+
+### Topic comparison
+
+## Create an empty dataframe to store all topics
+all_data <- data.frame()
+
+## Read data and merge all topics
+for (topicSheet in topicSheets) {
+  topic_keywords <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science/KeyWord Trends.xlsx", 
+                               sheet = topicSheet)
+  
+  colnames(topic_keywords) <- c("Keyword")
+  
+  filtered_data <- keywordTrends %>%
+    filter(Keyword %in% topic_keywords$Keyword) %>%
+    mutate(Topic = topicSheet)  # Add topic as a new column
+  
+  all_data <- bind_rows(all_data, filtered_data)
+}
+
+## Create violiplots 
+p <- ggplot(all_data, aes(x = Topic, y = Year, fill = Topic)) +
+  geom_violin(alpha = 0.7, outlier.shape = NA, draw_quantiles = 0.5) +  
+  #geom_jitter(width = 0.2, alpha = 0.1, color = "black") +  
+  scale_fill_viridis_d() +  
+  theme_minimal() +
+  labs(title = "Temporal Distribution of Topics", x = "Topic", y = "Year") +
+  theme(plot.title = element_text(face = "bold", size = 20),
+        axis.text.x = element_text(angle = 45, hjust = 1, size = 14),  
+        axis.text.y = element_text(size = 14),
+        axis.title = element_text(size = 16, face = "bold"),
+        legend.position = "none")  
+
+## Save the plot
+ggsave("boxplot_years_all_topics.pdf", plot = p, width = 12, height = 8, dpi = 300)
