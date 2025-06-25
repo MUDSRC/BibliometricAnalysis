@@ -22,6 +22,7 @@ library(readxl)
 library(dplyr)
 library(patchwork)
 library(viridisLite)
+library(tidyr)
 
 ### Temporal trends
 
@@ -33,7 +34,7 @@ topicSheets <- c("Glass Sponge Science", "Paleontology", "Invertebrate Zoology",
 plot_list <- list()
 
 ## Read the full keyword trend data
-keywordTrends <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science/KeyWord Trends.xlsx", 
+keywordTrends <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/KeyWord Trends.xlsx", 
                             sheet = 1)
 
 ## Viridis-gradient step color for legend
@@ -67,7 +68,7 @@ teardrop_legend <- ggplot(teardrop_data, aes(x, y, size = size, color = color)) 
 
 ## Read the data and generate the plots
 for (topicSheet in topicSheets) {
-  topic_keywords <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science/KeyWord Trends.xlsx", 
+  topic_keywords <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/KeyWord Trends.xlsx", 
                                sheet = topicSheet)
   
   colnames(topic_keywords) <- c("Keyword")
@@ -86,16 +87,10 @@ for (topicSheet in topicSheets) {
   #Apply the ordering to the Y-axis
   filtered_data <- filtered_data %>%
     mutate(Keyword = factor(Keyword, levels = ordered_keywords))
-  
-  # Merge median data for plotting red X
-  median_data <- median_data %>%
-    mutate(Keyword = factor(Keyword, levels = ordered_keywords))
-  
+
   # Create bubble plot with red "X" for median year
   p <- ggplot(filtered_data, aes(x = Year, y = Keyword, size = Frequency, color = Frequency)) +
     geom_point(alpha = 0.7) +  ## Bubbles
-    geom_point(data = median_data, aes(x = median_year, y = Keyword), 
-               shape = 4, color = "red3", size = 4, stroke = 1.5) + 
     scale_x_continuous(limits = c(1969, 2025), breaks = seq(1970, 2025, by = 10)) +
     scale_size(range = c(2, 10), limits = c(1, 75), breaks = legend_breaks) +
     scale_y_discrete(expand = expansion(mult = 0.035)) +
@@ -106,7 +101,7 @@ for (topicSheet in topicSheets) {
       legend.position = "right",
       legend.title = element_text(face = "bold")
       ) +
-    labs(title = topicSheet, x = "Year", size = "Frequency", color = "Frequency") +
+    labs(title = topicSheet, x = "Year", size = "Frequency", color = "Frequency", y = NULL) +
     guides(size = "none", color = "none")
   
   #p <- p + teardrop_legend + plot_layout(ncol = 2, widths = 1)
@@ -120,7 +115,7 @@ combined_plot <- (plot_list[[1]] | plot_list[[2]] | plot_list[[3]]) /
  
 
 ## Save the final combined plot
-setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science/Plots/Trends")
+setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Plots/Trends")
 ggsave("combined_bubbleplot_medianX.pdf", plot = combined_plot, width = 20, height = 16, dpi = 300)
 
 ### Topic comparison
@@ -130,7 +125,7 @@ all_data <- data.frame()
 
 ## Read data and merge all topics
 for (topicSheet in topicSheets) {
-  topic_keywords <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science/KeyWord Trends.xlsx", 
+  topic_keywords <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/KeyWord Trends.xlsx", 
                                sheet = topicSheet)
   
   colnames(topic_keywords) <- c("Keyword")
@@ -142,18 +137,40 @@ for (topicSheet in topicSheets) {
   all_data <- bind_rows(all_data, filtered_data)
 }
 
-## Create violiplots 
-p <- ggplot(all_data, aes(x = Topic, y = Year, fill = Topic)) +
-  geom_violin(alpha = 0.7, outlier.shape = NA, draw_quantiles = 0.5) +  
-  #geom_jitter(width = 0.2, alpha = 0.1, color = "black") +  
-  scale_fill_viridis_d() +  
+## Fine mode for each year
+freq_summary <- all_data %>%
+  group_by(Topic, Year) %>%
+  summarise(Frequency = sum(Frequency), .groups = "drop")
+
+expanded_data <- freq_summary %>%
+  uncount(weights = Frequency)
+
+mode_segments <- expanded_data %>%
+  group_by(Topic) %>%
+  nest() %>%
+  transmute(
+    Topic,
+    Year = map_dbl(data, ~ {
+      dens <- density(.x$Year)
+      dens$x[which.max(dens$y)]
+    }),
+    RoundedYear = round(Year)
+  )
+
+## Plot violin and add segment at mode year (rounded)
+p <- ggplot(expanded_data, aes(x = Topic, y = Year)) +
+  geom_violin(fill = "white", color = "black", trim = F, scale = "width") +
+  geom_segment(data = mode_segments,
+               aes(x = as.numeric(factor(Topic)) - 0.3,
+                   xend = as.numeric(factor(Topic)) + 0.3,
+                   y = RoundedYear, yend = RoundedYear),
+               color = "red", linewidth = 1.2, inherit.aes = FALSE) +
+  scale_x_discrete() +
   theme_minimal() +
-  labs(title = "Temporal Distribution of Topics", x = "Topic", y = "Year") +
-  theme(plot.title = element_text(face = "bold", size = 20),
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 14),  
-        axis.text.y = element_text(size = 14),
-        axis.title = element_text(size = 16, face = "bold"),
-        legend.position = "none")  
+  labs(x = "Topic", y = "Year", title = NULL) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+        axis.text.y = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "bold"))
 
 ## Save the plot
 ggsave("boxplot_years_all_topics.pdf", plot = p, width = 12, height = 8, dpi = 300)
