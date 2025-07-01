@@ -23,7 +23,7 @@ library(readxl)
 library(dplyr)
 
 ## Setting working directory
-setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science")
+setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science")
 
 ## Import the main tables
 yearTable <- read_excel("Tables.xlsx", sheet = "ArticlesPerYear")
