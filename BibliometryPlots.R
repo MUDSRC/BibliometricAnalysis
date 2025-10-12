@@ -36,6 +36,7 @@ paperPlot <- ggplot(data = yearTable, mapping = aes(x = Year, y = Articles)) +
   geom_line() +
   geom_point() +
   geom_smooth() +
+  geom_vline(xintercept = 2020)
   scale_x_continuous(breaks = seq(1960, 2020, by = 10)) +
   labs(title = "Publications over the years", 
        x = "Year", 

@@ -34,7 +34,7 @@ topicSheets <- c("Glass Sponge Science", "Paleontology", "Invertebrate Zoology",
 plot_list <- list()
 
 ## Read the full keyword trend data
-keywordTrends <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/KeyWord Trends.xlsx", 
+keywordTrends <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Misc tables/KeyWord Trends.xlsx", 
                             sheet = 1)
 
 ## Viridis-gradient step color for legend
@@ -68,7 +68,7 @@ teardrop_legend <- ggplot(teardrop_data, aes(x, y, size = size, color = color)) 
 
 ## Read the data and generate the plots
 for (topicSheet in topicSheets) {
-  topic_keywords <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/KeyWord Trends.xlsx", 
+  topic_keywords <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Misc tables/KeyWord Trends.xlsx", 
                                sheet = topicSheet)
   
   colnames(topic_keywords) <- c("Keyword")
@@ -125,7 +125,7 @@ all_data <- data.frame()
 
 ## Read data and merge all topics
 for (topicSheet in topicSheets) {
-  topic_keywords <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/KeyWord Trends.xlsx", 
+  topic_keywords <- read_excel("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Misc tables/KeyWord Trends.xlsx", 
                                sheet = topicSheet)
   
   colnames(topic_keywords) <- c("Keyword")
@@ -137,14 +137,16 @@ for (topicSheet in topicSheets) {
   all_data <- bind_rows(all_data, filtered_data)
 }
 
-## Fine mode for each year
+# Aggregate frequencies by Topic and Year
 freq_summary <- all_data %>%
   group_by(Topic, Year) %>%
   summarise(Frequency = sum(Frequency), .groups = "drop")
 
+#  Uncount to reflect frequency in density estimation
 expanded_data <- freq_summary %>%
   uncount(weights = Frequency)
 
+# Compute mode (~peak of density) and round to integer year
 mode_segments <- expanded_data %>%
   group_by(Topic) %>%
   nest() %>%
@@ -157,9 +159,9 @@ mode_segments <- expanded_data %>%
     RoundedYear = round(Year)
   )
 
-## Plot violin and add segment at mode year (rounded)
+# Plot violin and add segment at mode year (rounded)
 p <- ggplot(expanded_data, aes(x = Topic, y = Year)) +
-  geom_violin(fill = "white", color = "black", trim = F, scale = "width") +
+  geom_violin(fill = "lightgrey", color = "black", trim = TRUE, scale = "width") +
   geom_segment(data = mode_segments,
                aes(x = as.numeric(factor(Topic)) - 0.3,
                    xend = as.numeric(factor(Topic)) + 0.3,
@@ -167,10 +169,11 @@ p <- ggplot(expanded_data, aes(x = Topic, y = Year)) +
                color = "red", linewidth = 1.2, inherit.aes = FALSE) +
   scale_x_discrete() +
   theme_minimal() +
-  labs(x = "Topic", y = "Year", title = NULL) +
+  labs(x = "Topic", y = "Year") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
         axis.text.y = element_text(size = 12),
-        axis.title = element_text(size = 14, face = "bold"))
+        axis.title = element_text(size = 14, face = "bold"),
+        plot.title = element_text(size = 16, face = "bold"))
 
 ## Save the plot
-ggsave("boxplot_years_all_topics.pdf", plot = p, width = 12, height = 8, dpi = 300)
+ggsave("Figure 5 - Temporal trend topic.pdf", plot = p, width = 12, height = 8, dpi = 300)
