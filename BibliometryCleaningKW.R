@@ -25,12 +25,14 @@ library(readr)
 library(tidytext)
 
 ## Input
-biblioMetadata <- read_csv("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science/Scopus February 2025 - Refined.csv")
-setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 0 - Trend and actuality in glass sponge science")
+biblioMetadata <- read_csv("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Bibliometric Metadata/remaining_papers.csv")
+setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Bibliometric Metadata/")
 
 ## Removing irrelevant keywords
 removedKeywords <- c("review",
                      "reviews",
+                     "NA",
+                     "na",
                      "paper",
                      "papers",
                      "article",
@@ -78,9 +80,9 @@ synonymDictionary <- c(
 
 ## Refining the matrix
 biblioMetadata <- biblioMetadata %>%
-  mutate(across(c(`Author Keywords`, `Index Keywords`), ~ str_to_lower(.))) %>%  # Convert to lowercase
-  mutate(across(c(`Author Keywords`, `Index Keywords`), ~ str_replace_all(., synonymDictionary))) %>%  # Standardize synonyms
-  mutate(across(c(`Author Keywords`, `Index Keywords`), ~ str_remove_all(., paste(removedKeywords, collapse = "|"))))  # Remove irrelevant terms
+  mutate(across(c(`Author Keywords`, `Index Keywords`, `KW_merged`), ~ str_to_lower(.))) %>%  # Convert to lowercase
+  mutate(across(c(`Author Keywords`, `Index Keywords`, `KW_merged`), ~ str_replace_all(., synonymDictionary))) %>%  # Standardize synonyms
+  mutate(across(c(`Author Keywords`, `Index Keywords`, `KW_merged`), ~ str_remove_all(., paste(removedKeywords, collapse = "|"))))  # Remove irrelevant terms
 
 ## Save
 write_csv(biblioMetadata, "cleaned_keywords.csv")

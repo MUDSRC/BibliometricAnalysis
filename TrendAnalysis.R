@@ -104,8 +104,6 @@ for (topicSheet in topicSheets) {
     labs(title = topicSheet, x = "Year", size = "Frequency", color = "Frequency", y = NULL) +
     guides(size = "none", color = "none")
   
-  #p <- p + teardrop_legend + plot_layout(ncol = 2, widths = 1)
-  
   plot_list[[topicSheet]] <- p
 }
 
