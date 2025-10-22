@@ -27,16 +27,14 @@ library(purrr)
 library(readr)
 library(tibble)
 library(stringr)
+library(rlang)
 
 # ---- Configs ---------------------------------------------------------------
 include_unaccepted <- FALSE   # keep only accepted/valid names
 marine_only        <- TRUE    # restrict to marine-only records
 polite_delay       <- 0.10    # seconds between API calls
 
-# ---- Small helper(s) kept local --------------------------------------------
-# Null/empty coalescing operator: return a if it exists and isn't empty; else b
-`%||%` <- function(a, b) if (is.null(a) || length(a) == 0) b else a
-
+# ---- Small helper kept local --------------------------------------------
 # Pull all children pages for a node 
 children_all <- function(id) {
   out <- list(); offset <- 1L; page_size <- 50L
@@ -155,9 +153,6 @@ if (!grepl("\\.csv$", csv_path, ignore.case = TRUE)) csv_path <- paste0(csv_path
 
 write_csv(descendants, file = csv_path)
 
-showDialog(
-  "Export complete",
-  sprintf("Exported %d records (accepted-only, marine-only; to species).\n\nFile:\n%s",
-          nrow(descendants), csv_path)
-)
+showDialog("Export complete", sprintf("Exported %d records (accepted-only, marine-only; to species).\n\nFile:\n%s",
+          nrow(descendants), csv_path))
 
