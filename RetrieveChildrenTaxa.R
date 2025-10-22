@@ -37,7 +37,7 @@ allowed_statuses <- c("accepted",
                       "temporary name")
 
 # ---- Small helper kept local --------------------------------------------
-# Pull all children pages for a node 
+# Pull all children pages for a single node 
 children_all <- function(id) {
   out <- list(); offset <- 1L; page_size <- 50L
   repeat {
@@ -82,7 +82,7 @@ parent_status <- parent$status %||% "<unknown>"
 showDialog(
   title = "Parent taxon found",
   message = sprintf(
-    "Name: %s\nRank: %s\nStatus: %s\n\nFetching descendants to species (accepted-only, marine-only)…",
+    "Name: %s \r\nRank: %s\r\nStatus: %s\\r\nnFetching descendants to species (accepted, valid, temporary names; marine-only).",
     parent_name, parent_rank, parent_status
   )
 )
@@ -165,21 +165,41 @@ descendants <- bind_rows(stash) %>%
   ) %>%
   distinct()
 
-# ---- 4) Save CSV -------------------------------------------------------------
-csv_path <- selectFile(
-  caption  = "Save descendants as CSV",
+# Species-only table
+species_only <- bind_rows(stash) %>%
+  filter(!(rank %in% infraspecific)) %>%
+  filter(rank == "Species") %>%
+  select(AphiaID, scientificname, authority) %>%
+  distinct()
+
+# ---- 4) Save CSVs ------------------------------------------------------------
+# User pick a base file name, then derive two files:
+#   <chosen>_full.csv and <chosen>_species.csv
+csv_base <- selectFile(
+  caption  = "Choose base name for CSVs",
   label    = "Save",
   path     = getwd(),
   existing = FALSE
 )
-if (is.null(csv_path) || !nzchar(csv_path)) {
-  showDialog("Cancelled", "Export cancelled. Data not saved.")
+if (is.null(csv_base) || !nzchar(csv_base)) {
+  showDialog("Cancelled", "Export cancelled. No files saved.")
   return(invisible(descendants))
 }
-if (!grepl("\\.csv$", csv_path, ignore.case = TRUE)) csv_path <- paste0(csv_path, ".csv")
 
-write_csv(descendants, file = csv_path)
+# Remove eventual .csv the user might have typed, then append suffixes
+csv_base_nocsv <- sub("\\.csv$", "", csv_base, ignore.case = TRUE)
+full_path     <- paste0(csv_base_nocsv, "_full.csv")
+species_path  <- paste0(csv_base_nocsv, "_species.csv")
 
-showDialog("Export complete", sprintf("Exported %d records (accepted-only, marine-only; to species).\n\nFile:\n%s",
-          nrow(descendants), csv_path))
+# Write both files
+write_csv(descendants, file = full_path)
+write_csv(species_only, file = species_path)
 
+# One concise confirmation dialog covering both outputs
+showDialog(
+  "Export complete",
+  sprintf(
+    "Exported %d total records (accepted, valid, temporary names; marine-only).\nFull list: %s\nSpecies only (%d unique species): %s",
+    nrow(descendants), full_path, nrow(species_only), species_path
+  )
+)
