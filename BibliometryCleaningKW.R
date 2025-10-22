@@ -1,8 +1,8 @@
 # ~ HEADER --------------------------------------------
 #
-# ~ Author:         Alfredo Marchio'
+# ~ Author:         Alfredo Marchiò
 # ~ Email:          alfredo.marchio@research.uwa.edu.au
-# ~ Organization:    Minderoo-UWA Deep-Sea Research Centre
+# ~ Organization:   Minderoo-UWA Deep-Sea Research Centre
 # 
 # ~ Date:           2025-02-03
 # ~ Version:        1.1
@@ -10,44 +10,39 @@
 # ~ Script Name:    BibliometryCleaningKW
 #
 # ~ Script Description:
+# Load raw bibliometric metadata (CSV).
+# Define removal list and synonym/normalization dictionary.
+# Normalize keyword strings and drop irrelevant terms.
+# Produce a cleaned keywords file for downstream analyses.
 #
-#
-#
-# Copyright 2025 - Alfredo Marchio'
+# Copyright 2025 - Alfredo Marchiò
 #
 # ----------------------------------------------------
 
-## Libraries
+# ---- Libraries ------------------------------------------------------------
 library(bibliometrix)
 library(dplyr)
 library(stringr)
 library(readr)
 library(tidytext)
 
-## Input
+# ---- 1) Input --------------------------------------------------------------
+# Read metadata and set working directory for outputs
 biblioMetadata <- read_csv("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Bibliometric Metadata/remaining_papers.csv")
 setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Bibliometric Metadata/")
 
-## Removing irrelevant keywords
-removedKeywords <- c("review",
-                     "reviews",
-                     "paper",
-                     "papers",
-                     "revision",
-                     "insight",
-                     "article",
-                     "articles",
-                     "nonhuman", 
-                     "study", 
-                     "research",
-                     "priority journal",
-                     "controlled study",
-                     "abundance",
-                     "world",
-                     "quantitative analysis")
+# ---- 2) Removal list and synonym dictionary -------------------------------
+# Irrelevant/generic keywords to discard (lowercase)
+removedKeywords <- c(
+  "review", "reviews", "paper", "papers", "revision", "insight",
+  "article", "articles", "nonhuman", "study", "research",
+  "priority journal", "controlled study", "abundance", "world",
+  "quantitative analysis"
+)
 
+# Regex-based normalization dictionary (keys = patterns, values = replacements)
 synonymDictionary <- c(
-
+  
   # Porifera (general)
   "\\b(sponge \\(porifera\\)|porifera\\(porifera\\)|porifera porifera)\\b" = "porifera",
   "\\b(sponges|sponge)\\b" = "porifera",
@@ -115,7 +110,8 @@ synonymDictionary <- c(
   "\\bwaters?\\b" = "water"
 )
 
-## Helpers
+# ---- 3) Helpers -----------------------------------------------------------
+# NOTE: These functions are part of the original script. No changes to logic.
 normalize_terms <- function(x, dict) {
   pats <- names(dict)[order(nchar(names(dict)), decreasing = TRUE)]  # longest-first
   for (p in pats) x <- stringr::str_replace_all(x, p, dict[[p]])
@@ -124,25 +120,26 @@ normalize_terms <- function(x, dict) {
 
 clean_kw_col <- function(col, dict, removed) {
   col %>%
-    # 1) normalize synonyms first (on the full string)
+    # Normalize synonyms first (operate on full string)
     normalize_terms(dict) %>%
-    # 2) standardize separators and spacing
+    # Standardize separators and spacing
     stringr::str_replace_all("\\s*;\\s*", ";") %>%
     stringr::str_squish() %>%
-    # 3) split to tokens
+    # Split to tokens
     stringr::str_split(";") %>%
     purrr::map(~{
       toks <- stringr::str_squish(unlist(.x))
       toks <- toks[toks != ""]
-      # 4) drop irrelevant tokens by exact match (already lowercased upstream)
+      # Drop irrelevant tokens by exact match (lowercased upstream)
       toks <- toks[!(toks %in% removed)]
-      # 5) rejoin
+      # Rejoin
       paste(toks, collapse = "; ")
     }) %>%
     unlist()
 }
 
-## Refining the matrix
+# ---- 4) Refine keyword fields --------------------------------------------
+# Lowercase, then clean Author/Index keywords and merged column using the dictionary
 biblioMetadata <- biblioMetadata %>%
   dplyr::mutate(across(c(`Author Keywords`, `Index Keywords`, `KW_merged`), ~ stringr::str_to_lower(.))) %>%
   dplyr::mutate(
@@ -151,5 +148,6 @@ biblioMetadata <- biblioMetadata %>%
     KW_merged         = clean_kw_col(KW_merged,         synonymDictionary, removedKeywords)
   )
 
-## Save
+# ---- 5) Save --------------------------------------------------------------
+# Export normalized/cleaned metadata for downstream grouping/plots
 write_csv(biblioMetadata, "cleaned_keywords.csv")

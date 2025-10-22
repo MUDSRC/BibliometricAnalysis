@@ -1,6 +1,6 @@
 # ~ HEADER --------------------------------------------
 #
-# ~ Author:         Alfredo Marchio'
+# ~ Author:         Alfredo Marchiò
 # ~ Email:          alfredo.marchio@research.uwa.edu.au
 # ~ Organization:   Minderoo-UWA Deep-Sea Research Centre
 # 
@@ -10,12 +10,12 @@
 # ~ Script Name:    RetrieveChildrenTaxa
 #
 # ~ Script Description:
-# 1) Prompts for a parent AphiaID.
-# 2) Validates it against WoRMS and shows name/rank/status.
-# 3) Traverses ALL descendants down to species (excludes infraspecific ranks).
-# 4) Prompts for a CSV path and saves results.
+# Prompts for a parent AphiaID.
+# Validates it against WoRMS and shows name/rank/status.
+# Traverses ALL descendants down to species (excludes infraspecific ranks).
+# Prompts for a CSV path and saves results.
 #
-# Copyright 2025 - Alfredo Marchio'
+# Copyright 2025 - Alfredo Marchiò
 #
 # ----------------------------------------------------
 
@@ -91,47 +91,74 @@ showDialog(
 infraspecific <- c("Subspecies","Variety","Form","Subvariety","Forma","Subform")
 norm_rank <- function(x) str_to_title(as.character(x))
 
+# queue: AphiaIDs waiting to be processed; start from the parent
 queue   <- list(aphia_id)
+# visited: keep track of AphiaIDs already expanded, prevents cycles/repeats
 visited <- integer(0)
+# stash: a list of data frames; append each "children" page here and bind later
 stash   <- list()
 
 while (length(queue) > 0) {
-  current <- queue[[1]]; queue <- queue[-1]
+  # Pop the first AphiaID (FIFO order => breadth-first)
+  current <- queue[[1]]
+  queue <- queue[-1]
+  
+  # Skip if we've already expanded this node
   if (current %in% visited) next
   visited <- c(visited, current)
   
+  # Be polite to the API: tiny delay between node requests (set to 0 to disable)
   if (polite_delay > 0) Sys.sleep(polite_delay)
   
-  kids <- children_all(current)
-  if (nrow(kids) == 0) next
+  # Query WoRMS for the children of the current node (handles pagination)
+  children_taxon <- children_all(current)
+  if (nrow(children_taxon) == 0) next  # no children: move on
   
-  kids <- kids %>%
+  # Ensure consistent types/casing for downstream filters/joins
+  children_taxon <- children_taxon %>%
     mutate(
-      rank = norm_rank(rank),
-      status = as.character(status),
-      scientificname = as.character(scientificname)
+      rank            = norm_rank(rank),              # e.g., "genus" -> "Genus"
+      status          = as.character(status),         # ensure character
+      scientificname  = as.character(scientificname)  # ensure character
     )
   
-  filter(status %in% allowed_statuses)
-  if (nrow(kids) == 0) next
+  # Keep only statuses you care about (e.g., accepted/valid/temporary name)
+  # NOTE: assumes you defined `allowed_statuses <- c("accepted","valid","temporary name")`
+  children_taxon <- children_taxon %>%
+    mutate(status = tolower(status)) %>%
+    filter(status %in% allowed_statuses)
   
-  stash[[length(stash) + 1]] <- kids
+  if (nrow(children_taxon) == 0) next  # everything was filtered out
   
-  expand_ids <- kids %>%
+  # Accumulate this batch; we'll bind all batches at the end for efficiency
+  stash[[length(stash) + 1]] <- children_taxon
+  
+  # Determine which child nodes should be expanded further:
+  #  - expand everything ABOVE species (Kingdom..Genus, incl. subranks if you allow them)
+  #  - DO NOT expand species or anything below (infraspecific ranks)
+  expand_ids <- children_taxon %>%
     filter(rank != "Species", !(rank %in% infraspecific)) %>%
-    pull(AphiaID) %>% unique()
+    pull(AphiaID) %>%
+    unique()
   
+  # Enqueue those for later processing
   if (length(expand_ids)) queue <- c(queue, as.list(expand_ids))
 }
 
+# If we never found any acceptable children anywhere in the tree
 if (length(stash) == 0) {
   showDialog("No descendants", "No children were found down to species under these filters.")
   return(invisible(tibble()))
 }
 
+# Bind all collected child pages and do a final tidy/filter
 descendants <- bind_rows(stash) %>%
+  # Drop anything below species (safety check; already filtered during expansion)
   filter(!(rank %in% infraspecific)) %>%
+  # Keep only the ranks you want in the output table.
+  # To include Subfamily / Subgenus, add "Subfamily","Subgenus" here.
   filter(rank %in% c("Kingdom","Phylum","Class","Order","Family","Genus","Species")) %>%
+  # Select the canonical WoRMS columns you need
   select(
     AphiaID, scientificname, authority, rank, status,
     valid_name, kingdom, phylum, `class`, `order`, family, genus
