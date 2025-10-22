@@ -30,9 +30,11 @@ library(stringr)
 library(rlang)
 
 # ---- Configs ---------------------------------------------------------------
-include_unaccepted <- FALSE   # keep only accepted/valid names
 marine_only        <- TRUE    # restrict to marine-only records
-polite_delay       <- 0.10    # seconds between API calls
+polite_delay       <- 0.05    # seconds between API calls
+allowed_statuses <- c("accepted",
+                      "valid", 
+                      "temporary name")
 
 # ---- Small helper kept local --------------------------------------------
 # Pull all children pages for a node 
@@ -85,7 +87,7 @@ showDialog(
   )
 )
 
-# ---- 3) BFS traversal to species (no subspecies etc.) -----------------------
+# ---- 3) Breadth-First Search traversal to species -------------------------------
 infraspecific <- c("Subspecies","Variety","Form","Subvariety","Forma","Subform")
 norm_rank <- function(x) str_to_title(as.character(x))
 
@@ -110,9 +112,7 @@ while (length(queue) > 0) {
       scientificname = as.character(scientificname)
     )
   
-  if (!include_unaccepted && "status" %in% names(kids)) {
-    kids <- filter(kids, tolower(status) %in% c("accepted","valid"))
-  }
+  filter(status %in% allowed_statuses)
   if (nrow(kids) == 0) next
   
   stash[[length(stash) + 1]] <- kids
