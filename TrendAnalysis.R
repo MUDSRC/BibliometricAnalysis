@@ -2,7 +2,7 @@
 #
 # ~ Author:         Alfredo Marchio'
 # ~ Email:          alfredo.marchio@research.uwa.edu.au
-# ~ Organization:    Minderoo-UWA Deep-Sea Research Centre
+# ~ Organization:   Minderoo-UWA Deep-Sea Research Centre
 # 
 # ~ Date:           2025-02-08
 # ~ Version:        1.8
@@ -17,6 +17,7 @@
 #
 # ----------------------------------------------------
 
+## Libraries
 library(ggplot2)
 library(readxl)
 library(dplyr)
