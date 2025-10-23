@@ -22,7 +22,6 @@
 
 # ---- Libraries ------------------------------------------------------------
 library(ggplot2)
-library(worrms)
 library(readxl)
 library(dplyr)
 
@@ -39,7 +38,7 @@ setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actual
 yearTable    <- read_excel("Tables.xlsx", sheet = "ArticlesPerYear")
 sourcesTable <- read_excel("Tables.xlsx", sheet = "Sources")
 authorsTable <- read_excel("Tables.xlsx", sheet = "Authorship")
-speciesList  <- read_excel("SpeciesListWithYear.xlsx", sheet = "SpeciesListWithYear")
+speciesList  <- read_csv("clean_species.csv")
 
 # ---- 2) Publications over time -------------------------------------------
 # Line + points + smooth; vertical reference line at 2020
@@ -94,18 +93,13 @@ authorsPlot <- ggplot(majorAuthors, aes(x = Rank, y = Articles)) +
   ) +
   theme_minimal()
 
-# ---- 5) Taxonomic effort: prep -------------------------------------------
-# Normalize any list-columns, write a flat CSV for reference (unchanged workflow)
-temp <- data.frame(lapply(speciesList, function(x) if (is.list(x)) unlist(x) else x), stringsAsFactors = FALSE)
-write.csv(temp, "SpeciesListWithYear.csv", row.names = FALSE)
-
+# ---- 5) Taxonomic effort" ---------------------------------------------------
 # Yearly species counts and cumulative total
-species_count <- aggregate(AphiaID ~ Year, data = temp, FUN = length)
+species_count <- aggregate(AphiaID ~ Year, data = speciesList, FUN = length)
 species_count$Year <- as.numeric(as.character(species_count$Year))
 colnames(species_count) <- c("Year", "SpeciesCount")
 species_count$CumulativeCount <- cumsum(species_count$SpeciesCount)
 
-# ---- 6) Taxonomic effort: plot -------------------------------------------
 # Bars = yearly descriptions; red line = cumulative (scaled to primary axis)
 descriptionPlot <- ggplot(species_count, aes(x = Year)) +
   geom_bar(aes(y = SpeciesCount), stat = "identity", fill = "steelblue") +
@@ -127,7 +121,7 @@ descriptionPlot <- ggplot(species_count, aes(x = Year)) +
     plot.background = element_rect(fill = "white", color = NA)
   )
 
-# ---- 7) Save outputs ------------------------------------------------------
+# ---- 6) Save outputs ------------------------------------------------------
 # Write PDFs to the Plots folder with fixed sizes/units/dpi
 setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Plots")
 

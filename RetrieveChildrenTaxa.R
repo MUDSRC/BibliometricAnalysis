@@ -190,13 +190,13 @@ csv_base_nocsv <- sub("\\.csv$", "", csv_base, ignore.case = TRUE)
 full_path     <- paste0(csv_base_nocsv, ".csv")
 
 # Write both files
-write_csv(descendants, file = full_path)
+write_excel_csv(descendants, file = full_path)
 
 # One concise confirmation dialog covering both outputs
 showDialog(
   "Export complete",
   sprintf(
     "Exported %d total records (accepted, valid, temporary names; marine-only).\nFull list: %s",
-    nrow(descendants), full_path, nrow(species_only), species_path
+    nrow(descendants), full_path, nrow(species_only)
   )
 )
