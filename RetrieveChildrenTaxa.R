@@ -12,7 +12,7 @@
 # ~ Script Description:
 # Prompts for a parent AphiaID.
 # Validates it against WoRMS and shows name/rank/status.
-# Traverses ALL descendants down to species (excludes infraspecific ranks).
+# Traverses ALL descendants down to species (excludes infraspecific and secondary ranks).
 # Prompts for a CSV path and saves results.
 #
 # Copyright 2025 - Alfredo Marchiò
@@ -174,7 +174,6 @@ species_only <- bind_rows(stash) %>%
 
 # ---- 4) Save CSVs ------------------------------------------------------------
 # User pick a base file name, then derive two files:
-#   <chosen>_full.csv and <chosen>_species.csv
 csv_base <- selectFile(
   caption  = "Choose base name for CSVs",
   label    = "Save",
@@ -188,18 +187,16 @@ if (is.null(csv_base) || !nzchar(csv_base)) {
 
 # Remove eventual .csv the user might have typed, then append suffixes
 csv_base_nocsv <- sub("\\.csv$", "", csv_base, ignore.case = TRUE)
-full_path     <- paste0(csv_base_nocsv, "_full.csv")
-species_path  <- paste0(csv_base_nocsv, "_species.csv")
+full_path     <- paste0(csv_base_nocsv, ".csv")
 
 # Write both files
 write_csv(descendants, file = full_path)
-write_csv(species_only, file = species_path)
 
 # One concise confirmation dialog covering both outputs
 showDialog(
   "Export complete",
   sprintf(
-    "Exported %d total records (accepted, valid, temporary names; marine-only).\nFull list: %s\nSpecies only (%d unique species): %s",
+    "Exported %d total records (accepted, valid, temporary names; marine-only).\nFull list: %s",
     nrow(descendants), full_path, nrow(species_only), species_path
   )
 )
