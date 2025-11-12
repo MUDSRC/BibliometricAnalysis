@@ -122,10 +122,10 @@ descriptionPlot <- ggplot(species_count, aes(x = Year)) +
   )
 
 # ---- 6) Save outputs ------------------------------------------------------
-# Write PDFs to the Plots folder with fixed sizes/units/dpi
+# Write PDFs to the Plots folder with fixed sizes and dpi
 setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Plots")
 
 ggsave("Publication over the Years.pdf", paperPlot,  width = 20, height = 16, units = "cm", dpi = 300)
-ggsave("Major Journals.pdf",              journalPlot, width = 20, height = 16, units = "cm", dpi = 300)  
-ggsave("Major Authors.pdf",               authorsPlot, width = 20, height = 16, units = "cm", dpi = 300)
-ggsave("Taxonomic effort.pdf",            descriptionPlot, width = 20, height = 16, units = "cm", dpi = 300)
+ggsave("Major Journals.pdf", journalPlot, width = 20, height = 16, units = "cm", dpi = 300)  
+ggsave("Major Authors.pdf", authorsPlot, width = 20, height = 16, units = "cm", dpi = 300)
+ggsave("Taxonomic effort.pdf", descriptionPlot, width = 20, height = 16, units = "cm", dpi = 300)
