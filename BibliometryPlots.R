@@ -25,8 +25,7 @@ library(ggplot2)
 library(readxl)
 library(dplyr)
 
-# ---- Configs -------------------------------------------------
-# Set project root for relative paths used below
+# Set project root
 setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science")
 
 # ---- 1) Import main tables -----------------------------------------------
@@ -37,7 +36,6 @@ setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actual
 #  - SpeciesListWithYear: species with AphiaID and Year of description
 yearTable    <- read_excel("Tables.xlsx", sheet = "ArticlesPerYear")
 sourcesTable <- read_excel("Tables.xlsx", sheet = "Sources")
-authorsTable <- read_excel("Tables.xlsx", sheet = "Authorship")
 speciesList  <- read_csv("clean_species.csv")
 
 # ---- 2) Publications over time -------------------------------------------
@@ -77,23 +75,8 @@ journalPlot <- ggplot(majorSources, aes(x = Rank, y = Articles)) +
   ) +
   theme_minimal()
 
-# ---- 4) Rank–frequency: authors ------------------------------------------
-# Filter prolific authors (>=8 articles); rank by descending Articles
-majorAuthors <- subset(authorsTable, Articles >= 8)
-majorAuthors <- majorAuthors[order(-majorAuthors$Articles), ]  
-majorAuthors$Rank <- 1:nrow(majorAuthors) 
 
-authorsPlot <- ggplot(majorAuthors, aes(x = Rank, y = Articles)) +
-  geom_point(color = "steelblue") +
-  geom_line() +
-  labs(
-    title = "Rank-Frequency Distribution of Author Publications",
-    x = "Rank of Author",
-    y = "Number of Publications"
-  ) +
-  theme_minimal()
-
-# ---- 5) Taxonomic effort" ---------------------------------------------------
+# ---- 4) Taxonomic effort" ---------------------------------------------------
 # Yearly species counts and cumulative total
 species_count <- aggregate(AphiaID ~ Year, data = speciesList, FUN = length)
 species_count$Year <- as.numeric(as.character(species_count$Year))
@@ -123,9 +106,8 @@ descriptionPlot <- ggplot(species_count, aes(x = Year)) +
 
 # ---- 6) Save outputs ------------------------------------------------------
 # Write PDFs to the Plots folder with fixed sizes and dpi
-setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Plots")
+setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Raw Plots")
 
 ggsave("Publication over the Years.pdf", paperPlot,  width = 20, height = 16, units = "cm", dpi = 300)
 ggsave("Major Journals.pdf", journalPlot, width = 20, height = 16, units = "cm", dpi = 300)  
-ggsave("Major Authors.pdf", authorsPlot, width = 20, height = 16, units = "cm", dpi = 300)
 ggsave("Taxonomic effort.pdf", descriptionPlot, width = 20, height = 16, units = "cm", dpi = 300)

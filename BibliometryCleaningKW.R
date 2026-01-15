@@ -37,78 +37,98 @@ removedKeywords <- c(
   "review", "reviews", "paper", "papers", "revision", "insight",
   "article", "articles", "nonhuman", "study", "research",
   "priority journal", "controlled study", "abundance", "world",
-  "quantitative analysis"
+  "quantitative analysis", "na"
 )
 
 # Regex-based normalization dictionary (keys = patterns, values = replacements)
 synonymDictionary <- c(
+  # 1) PORIFERA (general terms and dataset variants)
+  "\\bporifera \\(porifera\\)\\b"                  = "porifera",
+  "^\\(porifera\\)$"                               = "porifera",
+  "\\bsponges?\\b"                                 = "porifera",
+  "\\bmarine[ -]porifera\\b"                       = "porifera",
+  "\\bdeep[- ]sea porifera\\b"                     = "porifera",
+  "\\bdeep[- ]sea porifera aggregations\\b"        = "porifera bed",
+  "\\bfresh[- ]water porifera\\b"                  = "porifera",
+  "\\bfreshwater porifera\\b"                      = "porifera",
+
+  "\\bsiliceous porifera\\b"                       = "porifera",
+  "\\bcalcareous porifera\\b"                      = "porifera",
   
-  # Porifera (general)
-  "\\b(sponge \\(porifera\\)|porifera\\(porifera\\)|porifera porifera)\\b" = "porifera",
-  "\\b(sponges|sponge)\\b" = "porifera",
-  "\\bmarine[- ]porifera\\b" = "porifera",
-  "\\bporifera[- ]grounds?\\b" = "porifera grounds",
+  "\\bporifera aggregations\\b"                    = "porifera bed",
+  "\\bporifera beds?\\b"                           = "porifera bed",
+  "\\bsea porifera grounds\\b"                     = "porifera grounds",
   
-  # Hexactinellida
-  "\\b(hexactinellida|hexactinellida porifera|hexactinellid(?:s)?|hexactinellid[- ]porifera|porifera[- ]hexactinellida)\\b" = "hexactinellida",
-  "\\b(?:glass porifera(?: reef| porifera)?|glass)\\b" = "hexactinellida",
-  "\\b(?:hexactinellida\\W+porifera|porifera\\W+hexactinellida)\\b" = "hexactinellida",
+  # 2) HEXACTINELLIDA (glass sponges)
+  "[^;]*hexactinellida[^;]*"                       = "hexactinellida",
+  "[^;]*hexactinellid[a]?[^;]*"                    = "hexactinellida",
+  "glass\\s+porifera"                              = "hexactinellida",
+  "\\bhexactinellida\\b"                           = "hexactinellida",
   
-  # Demospongiae
-  "\\b(demosponge|demosponges)\\b" = "demospongiae",
+  # 3) DEMOSPONGIAE
+  "\\bdemosponge(s)?\\b"                           = "demospongiae",
   
-  # Species normalization
-  "\\b(demosponge suberites-domuncula|suberites domuncula)\\b" = "suberites-domuncula",
-  "\\b(rhabdocalyptus-dawsoni lambe)\\b" = "rhabdocalyptus-dawsoni",
-  "\\bcoral lophelia-pertusa\\b" = "lophelia-pertusa",
+  # 4) SPECIES NORMALIZATION
+  "\\bdemosponge suberites-domuncula\\b"           = "suberites-domuncula",
+  "\\bsuberites domuncula\\b"                      = "suberites-domuncula",
+  "\\brhabdocalyptus-dawsoni lambe\\b"             = "rhabdocalyptus-dawsoni",
+  "\\bcoral lophelia-pertusa\\b"                   = "lophelia-pertusa",
   
-  # Metazoa
-  "\\b(animalia|animals|animal|metazoan|metazoon|metazoaia)\\b" = "metazoa",
+  # 5) METAZOA
+  "\\banimalia\\b"                                 = "metazoa",
+  "\\banimals?\\b"                                 = "metazoa",
+  "\\bmetazoan\\b"                                 = "metazoa",
+  "\\bmetazoon\\b"                                 = "metazoa",
+  "\\bmetazoaia\\b"                                = "metazoa",
   
-  # Deep sea
-  "\\b(deepsea|deep sea)\\b" = "deep-sea",
+  # 6) DEEP SEA
+  "\\bdeepsea\\b"                                  = "deep-sea",
+  "\\bdeep sea\\b"                                 = "deep-sea",
   
-  # Community
-  "\\bcommunity structure\\b" = "community",
-  "\\bcommunities\\b"= "community",
+  # 7) COMMUNITY
+  "\\bcommunities\\b"                              = "community",
   
-  # Atlantic
-  "\\bnorth[- ]?atlantic\\b" = "atlantic", 
-  "\\bnorth[- ]?east(?:ern)?[- ]atlantic\\b" = "atlantic",
-  "\\bne[- ]atlantic\\b" = "atlantic", 
-  "\\bnorth[- ]?west(?:ern)?[- ]atlantic\\b" = "atlantic",  
-  "\\bsouth[- ]?west(?:ern)?[- ]atlantic\\b" = "atlantic", 
-  "\\bmid[- ]atlantic[- ]ridge\\b" = "atlantic",
-  "\\batlantic-ocean\\b" = "atlantic",
+  # 8) ATLANTIC
+  "\\bnorth[ -]?atlantic\\b"                       = "atlantic",
+  "\\bnorth[ -]?east(?:ern)?[ -]atlantic\\b"       = "atlantic",
+  "\\bne[ -]atlantic\\b"                           = "atlantic",
+  "\\bnorth[ -]?west(?:ern)?[ -]atlantic\\b"       = "atlantic",
+  "\\bsouth[ -]?west(?:ern)?[ -]atlantic\\b"       = "atlantic",
+  "\\bmid[ -]atlantic[ -]ridge\\b"                 = "atlantic",
+  "\\batlantic-ocean\\b"                           = "atlantic",
   
-  # Biosilica
-  "\\b(biological silica|biogenic silica|bio-silica|biosilica-glass)\\b" = "biosilica",
+  # 9) BIOSILICA
+  "\\bbiological silica\\b"                        = "biosilica",
+  "\\bbiogenic silica\\b"                          = "biosilica",
+  "\\bbio-silica\\b"                               = "biosilica",
+  "\\bbiosilica-glass\\b"                          = "biosilica",
   
-  # Misc. normalizations / spelling / singularization
-  "\\bbacteria \\(microorganism\\)\\b" = "bacteria",
-  "\\bcrustaceans\\b" = "crustacea",
-  "\\bmicroscopy, electron, scanning\\b" = "scanning electron microscopy",
-  "\\bpalaeoecology\\b" = "paleoecology",
-  "\\becosystems\\b" = "ecosystem",
-  "\\binvertebrata\\b" = "invertebrate",
-  "\\bbenthic\\b" = "benthos",
-  "\\bbritish-columbia\\b" = "british columbia",
-  "\\bassemblages\\b" = "assemblage",
-  "\\bspicules\\b" = "spicule",
-  "\\bhabitats\\b" = "habitat",
-  "\\bcorals\\b" = "coral",
-  "\\bimpact\\b" = "impacts",
-  "\\breefs?\\b" = "reef",
-  "\\bseamounts?\\b" = "seamount",
-  "\\bsediment(ation)?s?\\b" = "sediments",
-  "\\bsequence(?: alignment)?s?\\b" = "sequence",
-  "\\bskeletons?\\b" = "skeleton",
-  "\\bsouth china(?: sea)?\\b" = "south china sea",
-  "\\bspecies[- ]?(?:diversity|richness)\\b" = "species diversity",
-  "\\b(?:sp\\.\\s*nov|new species)\\b" = "new species",
-  "\\bspecies distribution model(?:ling|ing|s)?\\b" = "species distribution modelling",
-  "\\bwaters?\\b" = "water"
+  # 10) OTHER NORMALIZATIONS
+  "\\bbacteria \\(microorganism\\)\\b"             = "bacteria",
+  "\\bcrustaceans\\b"                              = "crustacea",
+  "\\bmicroscopy, electron, scanning\\b"           = "scanning electron microscopy",
+  "\\bpalaeoecology\\b"                            = "paleoecology",
+  "\\becosystems\\b"                               = "ecosystem",
+  "\\binvertebrata\\b"                             = "invertebrate",
+  "\\bbenthic\\b"                                  = "benthos",
+  "\\bbritish-columbia\\b"                         = "british columbia",
+  "\\bassemblages\\b"                              = "assemblage",
+  "\\bspicules\\b"                                 = "spicule",
+  "\\bhabitats\\b"                                 = "habitat",
+  "\\bcorals\\b"                                   = "coral",
+  "\\bimpact\\b"                                   = "impacts",
+  "\\breefs?\\b"                                   = "reef",
+  "\\bseamounts?\\b"                               = "seamount",
+  "\\bsediment(ation)?s?\\b"                       = "sediments",
+  "\\bsequence(?: alignment)?s?\\b"                = "sequence",
+  "\\bskeletons?\\b"                               = "skeleton",
+  "\\bsouth china(?: sea)?\\b"                     = "south china sea",
+  "\\bspecies[ -]?(?:diversity)\\b"                = "diversity",
+  "\\b(?:sp\\.\\s*nov|new species)\\b"             = "new species",
+  "\\bspecies distribution model(?:ling|ing|s)?\\b"= "species distribution modelling",
+  "\\bwaters?\\b"                                  = "water",
 )
+
 
 # ---- 3) Helpers -----------------------------------------------------------
 # NOTE: These functions are part of the original script. No changes to logic.

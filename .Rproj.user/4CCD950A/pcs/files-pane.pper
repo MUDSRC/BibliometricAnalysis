@@ -1,9 +1,13 @@
 {
     "sortOrder": [
         {
+            "columnIndex": 1,
+            "ascending": true
+        },
+        {
             "columnIndex": 2,
             "ascending": true
         }
     ],
-    "path": "C:/Users/24207596/OneDrive - UWA/Alfredo PhD/GitHub UWA/BibliometricAnalysis/bibliometric_databases"
+    "path": "C:/Users/24207596/OneDrive - UWA/Alfredo PhD/GitHub UWA/BibliometricAnalysis"
 }

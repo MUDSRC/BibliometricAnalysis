@@ -74,7 +74,7 @@ result <- yearly %>%
   left_join(totals, by = "Keyword") %>%
   arrange(PY, Keyword)
 
-# ---- 6) High-frequency keywords (> 9) -------------------------------------
+# ---- 6) High-frequency keywords (> 24) -------------------------------------
 # Build list of unique keywords across all docs and count overall frequency
 unique_kw <- keywords %>%
   select(KW_merged) %>%
@@ -84,7 +84,7 @@ unique_kw <- keywords %>%
   filter(Keyword != "") %>%
   mutate(Keyword = if (normalize_case) str_to_lower(Keyword) else Keyword) %>%
   count(Keyword, name = "Total_Frequency") %>%
-  filter(Total_Frequency > 9) %>%
+  filter(Total_Frequency > 24) %>%
   arrange(desc(Total_Frequency))
 
 # ---- 7) Output to CSV -----------------------------------------------------

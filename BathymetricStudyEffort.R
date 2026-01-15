@@ -36,12 +36,23 @@ names(raw_matrix) <- trimws(names(raw_matrix))
 names(raw_matrix)[names(raw_matrix) %in% c("ï..PY","﻿PY")] <- "PY"
 
 valid_zones <- c("Shallow","Mesophotic","Bathyal","Abyssal","Hadal")
+n_total_papers <- nrow(raw_matrix)
 zone_cols   <- intersect(names(raw_matrix), valid_zones)  # only keep legit zone columns
 
 # Convert presence marks to 0/1
 raw_matrix[zone_cols] <- lapply(raw_matrix[zone_cols], function(col) {
   as.integer(tolower(trimws(as.character(col))) == "x")
 })
+
+# Number of tagged papers (at least one depth zone)
+n_tagged_papers <- nrow(raw_matrix)
+
+# Print summary
+cat(
+  "Tagged papers (with at least one depth zone):",
+  n_tagged_papers, "out of", n_total_papers,
+  sprintf(" (%.1f%%)\n", 100 * n_tagged_papers / n_total_papers)
+)
 
 # Remove papers with no bathymetry
 raw_matrix <- raw_matrix[rowSums(raw_matrix[zone_cols], na.rm = TRUE) > 0, , drop = FALSE]
@@ -65,6 +76,17 @@ long <- raw_matrix %>%
     PY = as.integer(PY)
   )
 
+# Papers with at least one depth zone marked 
+has_any_tag <- rowSums(raw_matrix[zone_cols], na.rm = TRUE) > 0
+n_tagged_papers <- sum(has_any_tag)
+
+# Print summary (NAs in all zones NOT counted in the total)
+cat(
+  "Tagged papers (with at least one depth zone):",
+  n_tagged_papers, "out of", n_total_papers,
+  sprintf(" (%.1f%%)\n", 100 * n_tagged_papers / n_total_papers)
+)
+
 # ---- 3) Pie chart: total number of publications by zone --------------------
 totals_out <- totals %>%
   arrange(desc(DepthZone)) %>%
@@ -79,16 +101,17 @@ pie_plot <- ggplot(totals_out, aes(y = Total, x = 1, fill = DepthZone)) +
   geom_col(width = 1, color = "white") +
   coord_polar(theta = "y") +
   geom_text(aes(y = ymid, x = 1.1, label = Label), size = 4, fontface = "bold") +
-  xlim(0.5, 1.6) +  # gives room for labels outside
+  xlim(0.5, 1.6) + 
   theme_void(base_size = 12)
 
 # ---- 4) Violin plot ------------------------------------------------------
+# Prepare data
 pub_years <- long %>%
-  filter(Count > 0) %>%           # keep only years with at least one pub
-  uncount(weights = Count) %>%    # replicate rows Count-times
+  filter(Count > 0) %>%           
+  uncount(weights = Count) %>%   
   mutate(PY = as.integer(PY))
 
-# For nice axis limits
+# Axis limits
 ymin <- min(pub_years$PY, na.rm = TRUE)
 ymax <- max(pub_years$PY, na.rm = TRUE)
 

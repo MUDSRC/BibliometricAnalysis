@@ -41,7 +41,7 @@ normalize_text <- function(x) {
 parse_authority <- function(auth) {
   auth <- normalize_text(auth)
   auth <- str_replace_all(auth, "[\\[\\]]", "")           # drop bracket chars
-  auth <- str_replace(auth, "^\\((.*)\\)$", "\\1")        # unwrap (...) if whole string
+  auth <- str_replace(auth, "^\\((.*)\\)$", "\\1")        # unwrap if whole string
   auth <- str_squish(auth)
   
   yr   <- str_extract(auth, "\\d{4}$")
@@ -128,4 +128,3 @@ write_excel_csv(clean_species,   "clean_species.csv")
 write_excel_csv(authors_long,    "authors_long.csv")
 write_excel_csv(author_counts,   "most_prolific_taxonomists.csv")
 
-message("Done. Files written: clean_species.csv, authors_long.csv, most_prolific_taxonomists.csv")
