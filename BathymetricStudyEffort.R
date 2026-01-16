@@ -44,6 +44,7 @@ raw_matrix[zone_cols] <- lapply(raw_matrix[zone_cols], function(col) {
   as.integer(tolower(trimws(as.character(col))) == "x")
 })
 
+
 # Number of tagged papers (at least one depth zone)
 n_tagged_papers <- nrow(raw_matrix)
 
@@ -53,6 +54,7 @@ cat(
   n_tagged_papers, "out of", n_total_papers,
   sprintf(" (%.1f%%)\n", 100 * n_tagged_papers / n_total_papers)
 )
+
 
 # Remove papers with no bathymetry
 raw_matrix <- raw_matrix[rowSums(raw_matrix[zone_cols], na.rm = TRUE) > 0, , drop = FALSE]
@@ -87,6 +89,7 @@ cat(
   sprintf(" (%.1f%%)\n", 100 * n_tagged_papers / n_total_papers)
 )
 
+
 # ---- 3) Pie chart: total number of publications by zone --------------------
 totals_out <- totals %>%
   arrange(desc(DepthZone)) %>%
@@ -112,6 +115,16 @@ pub_years <- long %>%
   mutate(PY = as.integer(PY))
 
 # Axis limits
+xlim(0.5, 1.6) +  # gives room for labels outside
+theme_void(base_size = 12)
+
+# ---- 4) Violin plot ------------------------------------------------------
+pub_years <- long %>%
+  filter(Count > 0) %>%           # keep only years with at least one pub
+  uncount(weights = Count) %>%    # replicate rows Count-times
+  mutate(PY = as.integer(PY))
+
+# For nice axis limits
 ymin <- min(pub_years$PY, na.rm = TRUE)
 ymax <- max(pub_years$PY, na.rm = TRUE)
 
