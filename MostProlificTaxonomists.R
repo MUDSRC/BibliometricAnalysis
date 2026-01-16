@@ -86,12 +86,19 @@ df <- df_raw %>%
 # ---- 2) Clean authority + extract year/authors ----------------------------
 df_parsed <- df %>%
   mutate(
-    parsed         = map(authority, parse_authority),
+    parsed          = map(authority, parse_authority),
     Authority_clean = map_chr(parsed, "authority"),
     Year            = map_chr(parsed, "year"),
     Authors_only    = map_chr(parsed, "authors_only"),
-    Authors_list    = split_authors(Authors_only)
-  )
+    Authors_list    = map(Authors_only, split_authors),
+    First_author    = map_chr(
+      Authors_list,
+      ~ if (length(.x) >= 1 && length(.x[[1]]) >= 1) .x[[1]][1] else ""
+    )
+  ) %>%
+  mutate(First_author = str_squish(First_author)) %>%
+  filter(First_author != "")
+
 
 # ---- 3) Build outputs -----------------------------------------------------
 # Clean species table
@@ -114,17 +121,23 @@ authors_long <- df_parsed %>%
 author_counts <- authors_long %>%
   count(Author, sort = TRUE, name = "Count")
 
+# First authors
+first_authors <- df_parsed %>%
+  count(First_author, sort = TRUE, name = "Count") %>%
+  rename(Author = First_author)
+
 # ---- 4) Print summary and export -----------------------------------------
 print(author_counts)
 
-# Save into /species_list, create it into the wd if missing
-if (basename(normalizePath(getwd())) != "species_list") {
-  target <- file.path(getwd(), "species_list")
+# Save into /output, create it into the wd if missing
+if (basename(normalizePath(getwd())) != "output") {
+  target <- file.path(getwd(), "output")
   if (!dir.exists(target)) dir.create(target, recursive = TRUE)
   setwd(target)
 }
 
 write_excel_csv(clean_species,   "clean_species.csv")
+write_excel_csv(first_authors,   "first_authors.csv")
 write_excel_csv(authors_long,    "authors_long.csv")
 write_excel_csv(author_counts,   "most_prolific_taxonomists.csv")
 

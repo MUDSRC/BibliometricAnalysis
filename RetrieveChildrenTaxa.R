@@ -176,6 +176,7 @@ species_only <- bind_rows(stash) %>%
 # User pick a base file name, then derive two files:
 csv_base <- selectFile(
   caption  = "Choose base name for CSVs",
+  caption  = "Save",
   label    = "Save",
   path     = getwd(),
   existing = FALSE
