@@ -132,7 +132,7 @@ first_authors <- df_parsed %>%
 print(author_counts)
 # Save into /species_list, create it into the wd if missing
 if (basename(normalizePath(getwd())) != "species_list") {
-  target <- file.path(getwd(), "species_list")
+  target <- file.path(getwd(), "species_list")}
 
 # Save into /output, create it into the wd if missing
 if (basename(normalizePath(getwd())) != "output") {

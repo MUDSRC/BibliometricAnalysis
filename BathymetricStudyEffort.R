@@ -108,17 +108,6 @@ pie_plot <- ggplot(totals_out, aes(y = Total, x = 1, fill = DepthZone)) +
   theme_void(base_size = 12)
 
 # ---- 4) Violin plot ------------------------------------------------------
-# Prepare data
-pub_years <- long %>%
-  filter(Count > 0) %>%           
-  uncount(weights = Count) %>%   
-  mutate(PY = as.integer(PY))
-
-# Axis limits
-xlim(0.5, 1.6) +  # gives room for labels outside
-theme_void(base_size = 12)
-
-# ---- 4) Violin plot ------------------------------------------------------
 pub_years <- long %>%
   filter(Count > 0) %>%           # keep only years with at least one pub
   uncount(weights = Count) %>%    # replicate rows Count-times
@@ -141,7 +130,7 @@ violin_plot <- ggplot(pub_years, aes(x = DepthZone, y = PY, fill = DepthZone)) +
 
 # ---- 5) Save outputs ------------------------------------------------------
 # Write PDFs to the Plots folder with fixed sizes and dpi
-setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Plots")
+setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Raw Plots")
 
 ggsave("Publication per year per depth zone.pdf", violin_plot,  width = 20, height = 16, units = "cm", dpi = 300)
 ggsave("Pie chart depth zones.pdf", pie_plot, width = 20, height = 16, units = "cm", dpi = 300)  
