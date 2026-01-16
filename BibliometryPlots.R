@@ -110,7 +110,10 @@ setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actual
 
 ggsave("Publication over the Years.pdf", paperPlot,  width = 20, height = 16, units = "cm", dpi = 300)
 ggsave("Major Journals.pdf", journalPlot, width = 20, height = 16, units = "cm", dpi = 300)  
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> d791231b52457bdc764bba98323001ea11fbac01
 setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Plots")
 
 ggsave("Publication over the Years.pdf", paperPlot,  width = 20, height = 16, units = "cm", dpi = 300)

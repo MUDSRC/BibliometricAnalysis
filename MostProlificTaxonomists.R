@@ -90,6 +90,8 @@ df_parsed <- df %>%
     Authority_clean = map_chr(parsed, "authority"),
     Year            = map_chr(parsed, "year"),
     Authors_only    = map_chr(parsed, "authors_only"),
+    Authors_list    = split_authors(Authors_only)
+  )
     Authors_list    = map(Authors_only, split_authors),
     First_author    = map_chr(
       Authors_list,
@@ -128,6 +130,9 @@ first_authors <- df_parsed %>%
 
 # ---- 4) Print summary and export -----------------------------------------
 print(author_counts)
+# Save into /species_list, create it into the wd if missing
+if (basename(normalizePath(getwd())) != "species_list") {
+  target <- file.path(getwd(), "species_list")
 
 # Save into /output, create it into the wd if missing
 if (basename(normalizePath(getwd())) != "output") {
