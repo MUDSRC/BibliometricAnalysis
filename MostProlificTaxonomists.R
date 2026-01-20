@@ -90,13 +90,23 @@ df_parsed <- df %>%
     Authority_clean = map_chr(parsed, "authority"),
     Year            = map_chr(parsed, "year"),
     Authors_only    = map_chr(parsed, "authors_only"),
-    Authors_list    = split_authors(Authors_only)
-  )
     Authors_list    = map(Authors_only, split_authors),
-    First_author    = map_chr(
-      Authors_list,
-      ~ if (length(.x) >= 1 && length(.x[[1]]) >= 1) .x[[1]][1] else ""
-    )
+    
+    First_author = map_chr(Authors_list, function(x) {
+      # x may be: character vector, list of character vectors, or even nested
+      if (is.null(x) || length(x) == 0) return("")
+      
+      # If it's a list, take the first element until it's no longer a list
+      while (is.list(x)) {
+        if (length(x) == 0) return("")
+        x <- x[[1]]
+        if (is.null(x)) return("")
+      }
+      
+      # Now x should be atomic (ideally character)
+      x <- as.character(x)
+      if (length(x) == 0 || is.na(x[1])) "" else x[1]
+    })
   ) %>%
   mutate(First_author = str_squish(First_author)) %>%
   filter(First_author != "")

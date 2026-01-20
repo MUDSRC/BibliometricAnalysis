@@ -105,7 +105,7 @@ violin_keywords <- ggplot(kw_violin, aes(x = PY, y = Keyword)) +
     x = "Year",
     y = "Keyword",
   ) +
-  scale_x_continuous(breaks = seq(min_year, max_year, by = 10))
+  scale_x_continuous(breaks = seq(min_year, max_year, by = 10)) +
   theme_bw() +
   theme(
     plot.title  = element_text(hjust = 0.5),
@@ -118,5 +118,5 @@ print(violin_keywords)
 # Write PDFs to the Plots folder with fixed sizes and dpi
 setwd("C:/Users/24207596/OneDrive - UWA/Alfredo PhD/Chapter 1 - Trend and actuality in glass sponge science/Raw Plots")
 
-ggsave("Keyword__Barplot.pdf", bar_keywords, width = 8, height = 10, dpi = 300)
+ggsave("Keyword__Barplot.pdf", bar_keywords, width = 8, height = 10, unit = "mm", dpi = 300)
 ggsave("Keyword_TimeSeries.pdf", violin_keywords, width = 210, height = 297, unit = "mm", dpi = 300)
