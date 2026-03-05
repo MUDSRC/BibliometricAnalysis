@@ -12,7 +12,7 @@
 # ~ Script Description:
 # Prompts for a parent AphiaID.
 # Validates it against WoRMS and shows name/rank/status.
-# Traverses ALL descendants down to species (excludes infraspecific and secondary ranks).
+# Traverses ALL lower_ranks down to species (excludes infraspecific and secondary ranks).
 # Prompts for a CSV path and saves results.
 #
 # Copyright 2025 - Alfredo Marchiò
@@ -53,6 +53,25 @@ children_all <- function(id) {
   if (length(out) == 0) tibble() else bind_rows(out)
 }
 
+# Save the name of a certain node without recalling the API
+get_node_label <- function(id) {
+  key <- as.character(id)
+  if (exists(key, envir = node_cache, inherits = FALSE)) {
+    return(get(key, envir = node_cache, inherits = FALSE))
+  }
+  rec <- tryCatch(wm_record(id), error = function(e) NULL)
+  lab <- if (!is.null(rec)) {
+    sprintf("%s [%s] (AphiaID %s)",
+            rec$scientificname %||% "<unknown>",
+            rec$rank %||% "<unknown rank>",
+            id)
+  } else {
+    sprintf("AphiaID %s", id)
+  }
+  assign(key, lab, envir = node_cache)
+  lab
+}
+
 # ---- 1) Ask for AphiaID -----------------------------------------------------
 aphia_input <- showPrompt(
   title   = "WoRMS: Enter parent AphiaID",
@@ -82,7 +101,7 @@ parent_status <- parent$status %||% "<unknown>"
 showDialog(
   title = "Parent taxon found",
   message = sprintf(
-    "Name: %s \r\nRank: %s\r\nStatus: %s\\r\nnFetching descendants to species (accepted, valid, temporary names; marine-only).",
+    "Name: %s \r\nRank: %s\r\nStatus: %s\\r\nnFetching lower ranks until species rank (accepted, valid, temporary names; marine-only).",
     parent_name, parent_rank, parent_status
   )
 )
@@ -97,10 +116,14 @@ queue   <- list(aphia_id)
 visited <- integer(0)
 # stash: a list of data frames; append each "children" page here and bind later
 stash   <- list()
+# initialize counters
+total_rows <- 0L
 
 while (length(queue) > 0) {
-  # Pop the first AphiaID (FIFO order => breadth-first)
+  # Pop the first AphiaID (FIFO order => breadth-first) and write at screen latest taxon fetched
   current <- queue[[1]]
+  cat(sprintf("\nProcessing AphiaID: %s | Queue remaining: %d\n",
+              current, length(queue) - 1))
   queue <- queue[-1]
   
   # Skip if we've already expanded this node
@@ -112,6 +135,23 @@ while (length(queue) > 0) {
   
   # Query WoRMS for the children of the current node (handles pagination)
   children_taxon <- children_all(current)
+  
+  # Print total current taxon and number of taxa retrievied so far
+  node_cache <- new.env(parent = emptyenv())
+  
+  taxon_label <- get_node_label(current)
+  
+  if (nrow(children_taxon) > 0) {
+    total_rows <- total_rows + nrow(children_taxon)
+    
+    cat(sprintf(
+      "Retrieved %d rows from %s | Total rows so far: %d\n",
+      nrow(children_taxon),
+      taxon_label,
+      total_rows
+    ))
+  }
+  
   if (nrow(children_taxon) == 0) next  # no children: move on
   
   # Ensure consistent types/casing for downstream filters/joins
@@ -147,12 +187,12 @@ while (length(queue) > 0) {
 
 # If we never found any acceptable children anywhere in the tree
 if (length(stash) == 0) {
-  showDialog("No descendants", "No children were found down to species under these filters.")
+  showDialog("No lower ranks", "No children taxa were found down to species under these filters.")
   return(invisible(tibble()))
 }
 
 # Bind all collected child pages and do a final tidy/filter
-descendants <- bind_rows(stash) %>%
+lower_ranks <- bind_rows(stash) %>%
   # Drop anything below species (safety check; already filtered during expansion)
   filter(!(rank %in% infraspecific)) %>%
   # Keep only the ranks you want in the output table.
@@ -176,14 +216,13 @@ species_only <- bind_rows(stash) %>%
 # User pick a base file name, then derive two files:
 csv_base <- selectFile(
   caption  = "Choose base name for CSVs",
-  caption  = "Save",
   label    = "Save",
   path     = getwd(),
   existing = FALSE
 )
 if (is.null(csv_base) || !nzchar(csv_base)) {
   showDialog("Cancelled", "Export cancelled. No files saved.")
-  return(invisible(descendants))
+  return(invisible(lower_ranks))
 }
 
 # Remove eventual .csv the user might have typed, then append suffixes
@@ -191,13 +230,13 @@ csv_base_nocsv <- sub("\\.csv$", "", csv_base, ignore.case = TRUE)
 full_path     <- paste0(csv_base_nocsv, ".csv")
 
 # Write both files
-write_excel_csv(descendants, file = full_path)
+write_excel_csv(lower_ranks, file = full_path)
 
 # One concise confirmation dialog covering both outputs
 showDialog(
   "Export complete",
   sprintf(
     "Exported %d total records (accepted, valid, temporary names; marine-only).\nFull list: %s",
-    nrow(descendants), full_path, nrow(species_only)
+    nrow(lower_ranks), full_path, nrow(species_only)
   )
 )
