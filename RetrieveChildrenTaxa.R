@@ -7,7 +7,7 @@
 # ~ Date:           2025-10-22
 # ~ Version:        1.0
 #
-# ~ Script Name:    RetrieveChildrenTaxa
+# ~ Script Name:    RetrieveChildrenTaxa.R
 #
 # ~ Script Description:
 # Prompts for a parent AphiaID.
@@ -15,7 +15,7 @@
 # Traverses ALL lower_ranks down to species (excludes infraspecific and secondary ranks).
 # Prompts for a CSV path and saves results.
 #
-# Copyright 2025 - Alfredo Marchiò
+# Copyright 2026 - Alfredo Marchiò
 #
 # ----------------------------------------------------
 
@@ -73,6 +73,7 @@ get_node_label <- function(id) {
 }
 
 # ---- 1) Ask for AphiaID -----------------------------------------------------
+# Animalia AphiaID = 2
 aphia_input <- showPrompt(
   title   = "WoRMS: Enter parent AphiaID",
   message = "Provide the AphiaID of the parent taxon:",
